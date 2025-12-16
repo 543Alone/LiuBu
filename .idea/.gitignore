@@ -1,0 +1,24 @@
+# --- 1. 核心安全配置 (最重要) ---
+.env
+
+# --- 2. Python 运行时垃圾 (必须忽略) ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# --- 3. 虚拟环境 (不要上传，每个人电脑不一样) ---
+.venv/
+env/
+venv/
+ENV/
+
+# --- 4. PyCharm/IDE 配置文件 (解决你截图里的“乱”) ---
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+
+# --- 5. Mac 系统垃圾 (如果你或同事用 Mac) ---
+.DS_Store
