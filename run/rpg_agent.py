@@ -171,15 +171,32 @@ if __name__ == '__main__':
             "player": initial_state["player"]  # 实际项目中，这里应该从数据库读取最新的玩家状态
         }
 
-        # 运行图表！
-        # app.invoke 会自动跑完 parser -> engine -> narrator 的全过程
-        result = app.invoke(inputs)
+        # 使用流式模式运行图表！
+        # app.stream 会逐步执行节点，并允许我们实时显示输出
+        print("\nAI DM: ", end="", flush=True)
+        final_response = ""
+        for output in app.stream(inputs):
+            # 遍历每个节点的输出
+            for node_name, node_output in output.items():
+                if node_name == "narrator":
+                    # 获取Narrator节点的消息内容
+                    message_content = node_output["messages"][-1].content
+                    # 实时打印每个字符
+                    for char in message_content:
+                        print(char, end="", flush=True)
+                        final_response += char
+        
+        print()  # 换行
 
-        # 获取最后一条消息（也就是 Narrator 说的话）
-        final_response = result["messages"][-1].content
-        print(f"\nAI DM: {final_response}")
-
+        # 获取最终状态以更新本地状态
+        # 我们需要从最后一个输出中提取状态信息
+        result = None
+        for output in app.stream(inputs):
+            result = output
+        
         # 更新我们的本地状态（主要是为了下一轮对话能接上）
         # 在真实App里，LangGraph 的 Checkpointer 会自动帮你存状态，这里我们需要手动维护一下
-        initial_state["player"] = result["player"]
-        initial_state["messages"] = result["messages"]
+        if result and "engine" in result:
+            initial_state["player"] = result["engine"].get("player", initial_state["player"])
+        if result and "narrator" in result:
+            initial_state["messages"] = result["narrator"]["messages"]
